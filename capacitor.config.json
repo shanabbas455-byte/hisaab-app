@@ -1,0 +1,9 @@
+{
+  "appId": "com.shan.hisaab",
+  "appName": "Hisaab",
+  "webDir": "www",
+  "android": {
+    "adjustMarginsForEdgeToEdge": "force",
+    "backgroundColor": "#C9C3FF"
+  }
+}

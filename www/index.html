@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ur-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hisaab – likho, hisaab khud ho jaye</title>
+<style>
+@font-face{font-family:"Bricolage Grotesque";font-weight:700;font-style:normal;font-display:swap;src:url(fonts/bricolage-grotesque-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Bricolage Grotesque";font-weight:800;font-style:normal;font-display:swap;src:url(fonts/bricolage-grotesque-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:"Red Hat Mono";font-weight:400;font-style:normal;font-display:swap;src:url(fonts/red-hat-mono-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Red Hat Mono";font-weight:500;font-style:normal;font-display:swap;src:url(fonts/red-hat-mono-latin-500-normal.woff2) format("woff2")}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --ink:#1d2354; --muted:#56608f; --accent:#6a5cff;
+  --glass:rgba(255,255,255,.34); --glass-strong:rgba(255,255,255,.58); --edge:rgba(255,255,255,.7);
+  --rule:rgba(29,35,84,.10); --shadow:0 12px 40px rgba(60,50,140,.18);
+  --bg:#eef1ff; --o1:#ff9ec7; --o2:#7fd6ff; --o3:#b79cff;
+  --disp:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --mono:"Red Hat Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#eaeeff; --muted:#a3add9; --accent:#9d92ff;
+    --glass:rgba(255,255,255,.07); --glass-strong:rgba(255,255,255,.15); --edge:rgba(255,255,255,.18);
+    --rule:rgba(255,255,255,.08); --shadow:0 12px 40px rgba(0,0,0,.45);
+    --bg:#0d1022; --o1:#8a2f9c; --o2:#1c5fb0; --o3:#0e8f86; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#eaeeff; --muted:#a3add9; --accent:#9d92ff;
+  --glass:rgba(255,255,255,.07); --glass-strong:rgba(255,255,255,.15); --edge:rgba(255,255,255,.18);
+  --rule:rgba(255,255,255,.08); --shadow:0 12px 40px rgba(0,0,0,.45);
+  --bg:#0d1022; --o1:#8a2f9c; --o2:#1c5fb0; --o3:#0e8f86; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--mono);background:var(--bg);position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;
+  background:
+   radial-gradient(42vmax 42vmax at 12% 8%,var(--o1),transparent 62%),
+   radial-gradient(46vmax 46vmax at 92% 18%,var(--o2),transparent 62%),
+   radial-gradient(52vmax 52vmax at 55% 105%,var(--o3),transparent 62%),var(--bg)}
+.wrap{max-width:860px;margin:0 auto;padding:22px 14px 40px}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:20px;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);box-shadow:var(--shadow)}
+header{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;padding:0 6px 16px}
+h1{font:800 clamp(36px,8vw,58px)/1 var(--disp);margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;margin:8px 0 0;max-width:46ch;line-height:1.5}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+button{font:500 13px var(--mono);color:var(--ink);background:var(--glass-strong);border:1px solid var(--edge);border-radius:999px;padding:9px 15px;cursor:pointer;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+button:hover{border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sheet{display:grid;grid-template-columns:1fr minmax(110px,30%) minmax(96px,26%);overflow-x:auto;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 37px,var(--rule) 37px,var(--rule) 38px);}
+.sheet:focus-within{border-color:var(--accent)}
+textarea{font:400 17px/38px var(--mono);color:var(--ink);background:transparent;border:0;resize:none;outline:none;
+  padding:0 8px 0 20px;white-space:pre;overflow:hidden;min-height:380px;width:100%;caret-color:var(--accent)}
+textarea:focus-visible{outline:none}
+.col{padding:0 14px;text-align:right;font:500 17px/38px var(--mono);min-width:0;border-left:1px solid var(--edge)}
+.r{height:38px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r b{font-weight:500;background:var(--glass-strong);border:1px solid var(--edge);padding:2px 9px;border-radius:999px;cursor:pointer}
+.r .w{font-size:12px;color:var(--muted);margin-right:6px}
+.r.err{color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:0 4px 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;flex:0 0 auto;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.tab.on{background:var(--glass-strong);border-color:var(--accent);font-weight:700}
+.tab:not(.on){background:var(--glass)}
+.hd{height:38px;line-height:37px;font-size:13px;color:var(--muted);font-weight:500;padding:0 14px;text-align:right;border-bottom:1px solid var(--edge);background:var(--glass-strong);border-left:1px solid var(--edge)}
+.hd:first-child{text-align:left;padding-left:20px;border-left:0}
+.charts{display:grid;gap:14px;margin-top:18px}
+.sec{font:700 22px var(--disp);padding:0 6px}
+.card{padding:16px 18px}
+.card h3{margin:0 0 2px;font:700 18px var(--disp)}
+.card .tot{color:var(--muted);font-size:13px;margin-bottom:10px}
+.crow{display:grid;grid-template-columns:minmax(64px,26%) 1fr auto;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.crow .lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:14px;border-radius:999px;background:var(--rule);overflow:hidden}
+.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--o2),var(--accent))}
+.fill.neg{background:linear-gradient(90deg,var(--o1),#ff6b6b)}
+.crow .vl{text-align:right;white-space:nowrap}
+.crow .vl small{color:var(--muted);margin-left:6px}
+.don{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.lgs{flex:1;min-width:190px}
+.lg{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+.lg i{width:12px;height:12px;border-radius:50%}
+.lg .vl small{color:var(--muted);margin-left:6px}
+.seg{float:right;display:inline-flex;gap:6px}
+.seg button{padding:5px 11px;font-size:12px}
+.seg .on{border-color:var(--accent);font-weight:700}
+.lim{font-size:13px;margin-bottom:6px;color:var(--muted)}
+.lim.over{color:#e0524a;font-weight:700}
+.r b.memo{opacity:.65;font-style:italic;background:transparent}
+.tpl{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin:0 0 14px}
+.tpl[hidden]{display:none}
+.cmpsel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+select{font:500 13px var(--mono);color:var(--ink);background:var(--glass-strong);border:1px solid var(--edge);border-radius:999px;padding:7px 12px;max-width:100%}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:5px 8px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+.up{color:#d4543d}.dn{color:#2f9e6e}
+.scrim{position:fixed;inset:0;background:rgba(10,12,40,.35);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;z-index:40}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(320px,86vw);z-index:50;transform:translateX(-105%);visibility:hidden;transition:transform .28s ease,visibility .28s;display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px));border-radius:0 24px 24px 0;overflow-y:auto}
+body.menu .scrim{opacity:1;visibility:visible}
+body.menu .drawer{transform:none;visibility:visible}
+.drawer h2{font:800 24px var(--disp);margin:0 4px 4px}
+.drawer .dsub{color:var(--muted);font-size:13px;margin:0 4px 14px;line-height:1.5}
+.cat{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border-radius:16px;padding:12px;margin-bottom:8px;background:var(--glass)}
+.cat.on{border-color:var(--accent);background:var(--glass-strong)}
+.cat .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700}
+.cat b{display:block;font-size:14px}
+.cat small{display:block;color:var(--muted);font-size:12px;margin-top:2px;font-weight:400}
+.how{margin-top:auto}
+.help{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(10,12,40,.4)}
+.help[hidden]{display:none}
+.help .card{max-width:520px;width:100%;max-height:85vh;overflow-y:auto}
+.help ol{padding-left:20px;line-height:1.8;font-size:14px;margin:10px 0 14px}
+button[hidden]{display:none}
+#tplb{margin-bottom:12px}
+.tools button{display:inline-flex;align-items:center;gap:6px}
+.tools button:disabled{opacity:.4;cursor:default}
+.dsec{font:700 12px var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:12px 4px 8px}
+.dbtn{width:100%;text-align:left;border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:14px}
+.run .r{color:var(--muted);font-size:15px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 28px;justify-content:space-between;margin-top:14px;padding:14px 20px;font-size:14px}
+.bar div{display:flex;flex-direction:column;gap:2px;color:var(--muted);align-items:flex-end;text-align:right;margin-left:auto}
+.bar strong{font:700 24px/1.1 var(--disp);color:var(--ink)}
+.hint{margin:18px 6px 0;color:var(--muted);font-size:13px;line-height:1.7}
+.hint code{color:var(--ink);background:var(--glass);border:1px solid var(--edge);padding:1px 7px;border-radius:999px;white-space:nowrap}
+.hint p{margin:0 0 6px;max-width:78ch}
+@media (max-width:520px){
+  textarea,.col{font-size:15px}.run .r{font-size:13px}.col{padding:0 9px}.r .w{display:none}
+  .sheet{grid-template-columns:1fr minmax(92px,32%) minmax(78px,26%)}
+  .hd{padding:0 9px}.hd:first-child{padding-left:20px}
+}
+</style>
+<script src="jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer glass" id="drawer" aria-label="Categories" aria-hidden="true">
+  <h2>Categories</h2>
+  <p class="dsub">Jis category mein jana hai, us par tap karo. Uska safha khul jayega.</p>
+  <div id="cats"></div>
+  <div class="dsec">Tools</div>
+  <button id="sys" type="button" class="dbtn" aria-label="Number system badlo">Lakh · Crore</button>
+  <button id="mic" type="button" class="dbtn" hidden>Mic</button>
+  <button id="pdf" type="button" class="dbtn" hidden>PDF download</button>
+
+  <button type="button" class="cat how" id="howb"><span class="n">?</span><span><b>How to use</b><small>Chhoti si guide</small></span></button>
+</aside>
+<div class="help" id="help" hidden role="dialog" aria-modal="true" aria-label="How to use">
+  <div class="card glass">
+    <h3>How to use</h3>
+    <ol>
+      <li>Categories (☰) se category chuno, uska safha khul jata hai.</li>
+      <li>Upar Back aur Next se safhon ke beech jao. Aakhri safhe par Next naya safha bana deta hai.</li>
+      <li>Example lines ko apni raqam se badal do, ya nayi lines likho.</li>
+      <li><code>#</code> se heading likho, khali line se naya hissa shuru hota hai.</li>
+      <li><code>total</code> us hisse ki upar wali lines ka jod hai.</li>
+      <li><code>~</code> wali line total mein nahi ginti, <code>limit = 25k</code> se hadd lagti hai.</li>
+      <li>Jawab par tap karo to copy hota hai. Categories ke andar PDF button se hisaab save karo.</li>
+    </ol>
+    <button type="button" id="helpx">Band karo</button>
+  </div>
+</div>
+<div class="wrap">
+  <header>
+    <div>
+      <button id="tplb" type="button" aria-label="Categories kholo">&#9776; Categories</button>
+      <h1>Hisaab</h1>
+      <p class="sub">Calculator ke button nahi, seedha apni zubaan mein likho. Har line ka jawab aur chalta hua total saath saath aata hai.</p>
+    </div>
+    <div class="tools">
+      <button id="back" type="button" aria-label="Pichla safha">&larr; Back</button>
+      <button id="next" type="button" aria-label="Agla safha, ya aakhri par naya safha">Next &rarr;</button>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="Safhe"></div>
+
+  <div class="sheet glass" id="sheet">
+    <div class="hd">Hisaab likho</div><div class="hd">Jawab</div><div class="hd">Total</div>
+    <textarea id="inp" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Hisaab likhne ki jagah"></textarea>
+    <div class="col" id="res" aria-live="polite"></div>
+    <div class="col run" id="run" aria-label="Chalta hua total"></div>
+  </div>
+
+  <div class="bar glass" aria-live="polite">
+    <div>Grand total (saari lines ka jod)<strong id="tg">0</strong></div>
+  </div>
+
+  <div class="charts" id="charts"></div>
+
+  <div class="hint">
+    <p>Aise likho: <code>5000 ka 15%</code> <code>15% of 8000</code> <code>200 + 10%</code> <code>2 lakh aur 3.5 crore</code> <code>chai 120 x 3</code> <code>85k minus 12k</code></p>
+    <p>Naam do aur dobara use karo: <code>tankhwah = 85k</code>. Khali line ke baad naya hissa shuru hota hai. <code>total</code> us hisse ki upar wali lines jod deta hai, <code>pichla</code> upar wali line ka jawab hai. Agli line par tap karo to wahan seedha likh sakte ho. Jawab par tap karo to copy ho jata hai.</p>
+    <p>Naye features: <code>~ bachat = a - b</code> (sirf jawab dikhao, total mein na gino), <code>limit = 25k</code> (hisse ki hadd, zyada hone par laal), <code>2 tola to gram</code> <code>5 seer to kg</code> <code>1 maund to kg</code>, <code>15 percent of 8000</code>. Graph mein Bars/Donut badal sakte ho, aur do ya zyada safhon ka muqabla graph ke neeche aata hai.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY="hisaab-v1", PK="hisaab-pages", MODE="hisaab-mode", LH=38;
+  var tabs=document.getElementById("tabs"), charts=document.getElementById("charts");
+  var inp=document.getElementById("inp"), res=document.getElementById("res"), run=document.getElementById("run");
+  var tg=document.getElementById("tg");
+  var sample=["# Mahine ki tankhwah","tankhwah = 85k","",
+    "# Kharcha","kiraya 22,000","bijli 8,400","ration 15% of tankhwah","limit = 60k","~ bachay = tankhwah - total","",
+    "# Dukaan","chai 120 x 3","50k + 12%","5000 ka 15%","2 lakh aur 3.5 crore"].join("\n");
+  var pk=true;
+  try{ if(localStorage.getItem(MODE)==="intl") pk=false; }catch(e){}
+  var pages=[], cur=0;
+  try{
+    var pj=JSON.parse(localStorage.getItem(PK)||"null");
+    if(pj&&pj.pages&&pj.pages.length){ pages=pj.pages; cur=Math.min(pj.cur||0,pages.length-1); }
+  }catch(e){}
+  if(!pages.length){
+    var saved=null; try{ saved=localStorage.getItem(KEY); }catch(e){}
+    pages=[saved!==null?saved:sample]; cur=0;
+  }
+  inp.value=pages[cur];
+  function savePages(){ try{ localStorage.setItem(PK,JSON.stringify({pages:pages,cur:cur})); }catch(e){} }
+  function renderTabs(){
+    var h="";
+    for(var i=0;i<pages.length;i++){
+      var first=(pages[i].split("\n").filter(function(l){return l.trim();})[0]||"").replace(/^[#\/\s]+/,"").slice(0,16);
+      var t=(first||"Safha "+(i+1)).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+      h+='<button type="button" role="tab" class="tab'+(i===cur?' on':'')+'" data-i="'+i+'" aria-selected="'+(i===cur)+'">'+t+'</button>';
+    }
+    tabs.innerHTML=h;
+    if(backBtn) backBtn.disabled=(cur===0);
+    var on=tabs.querySelector(".on"); if(on&&on.scrollIntoView){ try{ on.scrollIntoView({block:"nearest",inline:"nearest"}); }catch(e){} }
+  }
+  var lineBlock=[], blockSum=[0];
+
+  function group(s){
+    if(!pk) return s.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+    if(s.length<=3) return s;
+    return s.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g,",")+","+s.slice(-3);
+  }
+  function fmt(n){
+    var neg=n<0, s=Math.abs(n).toFixed(4).replace(/\.?0+$/,"");
+    var p=s.split("."); return (neg?"-":"")+group(p[0])+(p[1]?"."+p[1]:"");
+  }
+  function words(n){
+    var a=Math.abs(n), x, w;
+    if(pk){ if(a>=1e7){x=a/1e7;w="crore";} else if(a>=1e5){x=a/1e5;w="lakh";} else return ""; }
+    else { if(a>=1e9){x=a/1e9;w="billion";} else if(a>=1e6){x=a/1e6;w="million";} else return ""; }
+    return (n<0?"-":"")+(Math.round(x*100)/100)+" "+w;
+  }
+  function mult(u){
+    if(u[0]==="l") return 1e5; if(u.slice(0,2)==="cr") return 1e7;
+    if(u[0]==="m") return 1e6; if(u[0]==="b") return 1e9; return 1e3;
+  }
+  var NUM="(\\d+\\.?\\d*)";
+  var UF={tola:11.6638,gram:1,grams:1,kg:1000,seer:933.1,ser:933.1,maund:37324.2,man:37324.2,masha:0.972,ratti:0.1215,ounce:28.3495,oz:28.3495,lb:453.592,pound:453.592};
+  var UN=Object.keys(UF).sort(function(a,b){return b.length-a.length;}).join('|');
+  function evalLine(raw,V){
+    var s=raw.replace(/(#|\/\/).*$/,"").trim();
+    if(!s) return {skip:true};
+    var name=null, a=s.match(/^([a-z_][a-z0-9_]*)\s*=\s*(.+)$/i);
+    if(a){ name=a[1].toLowerCase(); s=a[2]; }
+    s=s.toLowerCase().replace(/(\d),(?=\d)/g,"$1").replace(/×/g,"*").replace(/÷/g,"/");
+    s=s.replace(/\b(percent|per cent|fisad|fesad)\b/g,"%");
+    s=s.replace(new RegExp(NUM+"\\s*("+UN+")\\s+(?:to|in|ko|se)\\s+("+UN+")\\b","g"),function(_,n,a,c){return "("+n+"*"+(UF[a]/UF[c])+")";});
+    s=s.replace(new RegExp(NUM+"\\s*%\\s*(?:of|ka|ki|ke)\\s+","g"),"($1/100)*");
+    s=s.replace(new RegExp("(\\d+\\.?\\d*|\\)|[a-z_][a-z0-9_]*)\\s+(?:ka|ki|ke)\\s+"+NUM+"\\s*%","g"),"$1*($2/100)");
+    s=s.replace(/\b(multiplied by|guna|gunaa|into|times)\b/g,"*")
+       .replace(/\b(divided by|taqseem|bata)\b/g,"/")
+       .replace(/\b(minus|ghata|ghatao|kam)\b/g,"-")
+       .replace(/\b(plus|aur|jama|add)\b/g,"+");
+    s=s.replace(/(\d)\s*x\s*(?=[\d(])/g,"$1*");
+    s=s.replace(new RegExp(NUM+"\\s*(lakhs?|lacs?|crores?|cr|million|mn|billion|bn|hazaar|hazar|k)\\b","g"),
+      function(_,n,u){return "("+n+"*"+mult(u)+")";});
+    s=s.replace(new RegExp("^(.*\\S)\\s*([+-])\\s*"+NUM+"\\s*%\\s*$"),
+      function(_,l,o,p){return "("+l+")*(1"+o+"("+p+"/100))";});
+    s=s.replace(new RegExp(NUM+"\\s*%","g"),"($1/100)");
+    s=s.replace(/[a-z_][a-z0-9_]*/g,function(w){
+      return Object.prototype.hasOwnProperty.call(V,w) ? "("+V[w]+")" : "";
+    });
+    s=s.replace(/\^/g,"**").replace(/\b0+(\d)/g,"$1");
+    if(!/\d/.test(s)) return {skip:true};
+    if(!/^[\d\s+\-*\/().]*$/.test(s)) return {err:true};
+    try{
+      var v=Function('"use strict";return ('+s+')')();
+      if(typeof v!=="number"||!isFinite(v)) return {err:true};
+      return {val:v,name:name};
+    }catch(e){ return {err:true}; }
+  }
+  function render(){
+    var lines=inp.value.split("\n"), V={}, sum=0, cnt=0, last=null, b=0, o1=[], o2=[], items=[], titles={}, limits={};
+    lineBlock=[]; blockSum=[0];
+    for(var i=0;i<lines.length;i++){
+      var blank=!lines[i].trim();
+      if(blank){
+        if(cnt>0||blockSum[b]!==0||sum!==0){ b++; blockSum[b]=0; }
+        sum=0; cnt=0; V.total=0; lineBlock.push(Math.max(b-1,0));
+        o1.push('<div class="r"></div>'); o2.push('<div class="r"></div>'); continue;
+      }
+      lineBlock.push(b);
+      V.total=sum; if(last!==null){ V.pichla=last; V.prev=last; V.ans=last; }
+      var memo=/^\s*~/.test(lines[i]), r=evalLine(memo?lines[i].replace(/^\s*~/,""):lines[i],V);
+      if(r.skip){ var tm=lines[i].match(/^\s*#\s*(.+)$/); if(tm&&!titles[b]) titles[b]=tm[1]; o1.push('<div class="r"></div>'); o2.push('<div class="r"></div>'); continue; }
+      if(r.err){ o1.push('<div class="r err">…</div>'); o2.push('<div class="r"></div>'); continue; }
+      if(r.name) V[r.name]=r.val;
+      var memo2=memo||r.name==="limit"; if(r.name==="limit") limits[b]=r.val;
+      if(!memo2){ sum+=r.val; cnt++; last=r.val; blockSum[b]=sum; items.push({b:b,label:labelOf(lines[i],r.name,i),val:r.val}); }
+      var w=words(r.val), t=fmt(r.val);
+      o1.push('<div class="r">'+(w?'<span class="w">'+w+'</span>':'')+'<b'+(memo2?' class="memo"':'')+' data-v="'+t+'">'+t+'</b></div>');
+      o2.push('<div class="r">'+(!memo2&&cnt>1?'= '+fmt(sum):'')+'</div>');
+    }
+    res.innerHTML=o1.join(""); run.innerHTML=o2.join("");
+    drawCharts(items,titles,limits);
+    inp.style.height=Math.max(380,lines.length*LH+LH)+"px";
+    pages[cur]=inp.value; savePages(); renderTabs();
+    updateBar();
+  }
+  function esc(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function labelOf(raw,name,i){
+    if(name) return name;
+    var s=raw.replace(/(#|\/\/).*$/,"").trim();
+    var m=s.match(/^[^\d(+\-*\/.=%]+/);
+    var l=m?m[0].replace(/[:\s]+$/,"").trim():"";
+    return l||s.slice(0,18)||("Line "+(i+1));
+  }
+  function donut(rows){
+    var sa=0, C=2*Math.PI*40, off=0, s='', lg='';
+    rows.forEach(function(r){ sa+=Math.abs(r.val); });
+    rows.forEach(function(r,i){
+      var f=sa?Math.abs(r.val)/sa:0, col='hsl('+((i*47+250)%360)+',70%,58%)';
+      s+='<circle cx="60" cy="60" r="40" fill="none" stroke="'+col+'" stroke-width="22" stroke-dasharray="'+(f*C)+' '+(C-f*C)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 60 60)"/>';
+      off+=f*C;
+      lg+='<div class="lg"><i style="background:'+col+'"></i><span class="lb">'+esc(r.label)+'</span><span class="vl">'+fmt(r.val)+'<small>'+Math.round(f*100)+'%</small></span></div>';
+    });
+    return '<div class="don"><svg viewBox="0 0 120 120" width="150" height="150" role="img" aria-label="Donut chart">'+s+'</svg><div class="lgs">'+lg+'</div></div>';
+  }
+  function bars(rows){
+    if(cm==="donut") return donut(rows);
+    var mx=0, sa=0;
+    rows.forEach(function(r){ mx=Math.max(mx,Math.abs(r.val)); sa+=Math.abs(r.val); });
+    return rows.map(function(r){
+      var w=mx?Math.max(2,Math.abs(r.val)/mx*100):0, pc=sa?Math.round(Math.abs(r.val)/sa*100):0;
+      return '<div class="crow"><span class="lb" title="'+esc(r.label)+'">'+esc(r.label)+'</span><div class="track"><div class="fill'+(r.val<0?' neg':'')+'" style="width:'+w+'%"></div></div><span class="vl">'+fmt(r.val)+'<small>'+pc+'%</small></span></div>';
+    }).join("");
+  }
+  var lastItems=[], lastTitles={}, cm="bars", cA=0, cB=1;
+  function drawCharts(items,titles,limits){
+    lastItems=items; lastTitles=titles;
+    var g={}, order=[], h="", sums=[];
+    items.forEach(function(it){ if(!g[it.b]){ g[it.b]=[]; order.push(it.b); } g[it.b].push(it); });
+    order.forEach(function(k,n){
+      var rows=g[k], t=0; rows.forEach(function(r){ t+=r.val; });
+      var title=titles[k]||("Hissa "+(n+1));
+      sums.push({label:title,val:t});
+      var lim=limits&&limits[k], lh='';
+      if(lim){ var pu=Math.round(Math.abs(t)/lim*100), ov=pu>100; lh='<div class="lim'+(ov?' over':'')+'">Limit '+fmt(lim)+': '+pu+'% use hua'+(ov?' ('+fmt(t-lim)+' zyada)':'')+'</div><div class="track" style="margin-bottom:10px"><div class="fill'+(ov?' neg':'')+'" style="width:'+Math.min(pu,100)+'%"></div></div>'; }
+      if(rows.length>=2||lim) h+='<div class="card glass"><h3>'+esc(title)+'</h3><div class="tot">Total: '+fmt(t)+'</div>'+lh+bars(rows)+'</div>';
+    });
+    if(order.length>1) h='<div class="card glass"><h3>Hisson ka muqabla</h3><div class="tot">Har hisse ka total</div>'+bars(sums)+'</div>'+h;
+    if(!h) h='<div class="card glass"><div class="tot" style="margin:0">Graph dekhne ke liye ek hisse mein kam az kam do lines likho.</div></div>';
+    charts.innerHTML='<div class="sec">Summary graph<span class="seg"><button type="button" data-m="bars" class="'+(cm==="bars"?'on':'')+'">Bars</button><button type="button" data-m="donut" class="'+(cm==="donut"?'on':'')+'">Donut</button></span></div>'+h+cmp();
+  }
+  function updateBar(){
+    var g=0; for(var k=0;k<blockSum.length;k++) g+=blockSum[k];
+    tg.textContent=fmt(g);
+  }
+  inp.addEventListener("input",render);
+  ["keyup","select","focus"].forEach(function(ev){ inp.addEventListener(ev,updateBar); });
+  /* Khali jagah par tap karne se wahan nayi line ban jaye */
+  inp.addEventListener("click",function(e){
+    var y=e.clientY-inp.getBoundingClientRect().top;
+    var idx=Math.floor(y/LH), n=inp.value.split("\n").length;
+    if(idx>=n){
+      var add=Math.min(idx-n+1,3);
+      inp.value+=new Array(add+1).join("\n");
+      var end=inp.value.length; inp.setSelectionRange(end,end);
+      render();
+    } else updateBar();
+  });
+  res.addEventListener("click",function(e){
+    var b=e.target.closest("b"); if(!b) return;
+    var raw=b.getAttribute("data-v").replace(/,/g,"");
+    try{ navigator.clipboard.writeText(raw); }catch(err){}
+    var old=b.textContent; b.textContent="copy ho gaya";
+    setTimeout(function(){ b.textContent=old; },700);
+  });
+  var sys=document.getElementById("sys");
+  function label(){ sys.textContent = pk ? "Lakh · Crore" : "Million · Billion"; }
+  sys.addEventListener("click",function(){
+    pk=!pk; label(); render();
+    try{ localStorage.setItem(MODE,pk?"pk":"intl"); }catch(e){}
+  });
+  tabs.addEventListener("click",function(e){
+    var b=e.target.closest(".tab"); if(!b) return;
+    cur=parseInt(b.getAttribute("data-i"),10); inp.value=pages[cur]; render(); inp.focus();
+  });
+  var backBtn=document.getElementById("back"), nextBtn=document.getElementById("next");
+  function goTo(n){ cur=n; inp.value=pages[cur]; render(); window.scrollTo(0,0); }
+  backBtn.addEventListener("click",function(){ if(cur>0) goTo(cur-1); });
+  nextBtn.addEventListener("click",function(){
+    if(cur<pages.length-1){ goTo(cur+1); return; }
+    if(inp.value.trim()===""){ inp.focus(); return; }
+    pages.push(""); goTo(pages.length-1); inp.focus();
+  });
+  var pdfBtn=document.getElementById("pdf"), dlns=null;
+  try{
+    var CP=window.Capacitor&&window.Capacitor.Plugins;
+    if(CP&&CP.Filesystem&&CP.Share){
+      dlns={save:function(o){
+        return new Promise(function(ok,no){
+          var fr=new FileReader();
+          fr.onload=function(){ ok(String(fr.result).split(",")[1]); };
+          fr.onerror=no; fr.readAsDataURL(o.data);
+        }).then(function(b64){
+          return CP.Filesystem.writeFile({path:o.filename,data:b64,directory:"CACHE"});
+        }).then(function(r){
+          return CP.Share.share({title:"Hisaab PDF",url:r.uri,dialogTitle:"PDF save ya share karo"});
+        }).catch(function(e){
+          if(/cancel/i.test(String(e&&e.message))) throw {code:"declined"};
+          throw e;
+        });
+      }};
+      pdfBtn.hidden=false;
+    } else if(window.claude&&window.claude.use){
+      window.claude.use("downloads").then(function(d){ dlns=d; if(d) pdfBtn.hidden=false; }).catch(function(){});
+    }
+  }catch(e){}
+  function pdfClean(t){ return String(t).replace(/[^\x20-\x7E]/g,""); }
+  function buildPdf(){
+    var J=window.jspdf&&window.jspdf.jsPDF; if(!J) return null;
+    var d=new J({unit:"pt",format:"a4"}), W=595, M=40, y=M+10, XJ=390, XR=W-M;
+    function ensure(h){ if(y+h>800){ d.addPage(); y=M+10; } }
+    function txt(s,x,yy,o){ d.text(pdfClean(s),x,yy,o); }
+    d.setTextColor(30,35,84); d.setFont("helvetica","bold"); d.setFontSize(24); txt("Hisaab",M,y); y+=20;
+    d.setFont("helvetica","normal"); d.setFontSize(10); d.setTextColor(110,115,150);
+    txt(new Date().toLocaleDateString("en-GB"),M,y); y+=14;
+    d.setDrawColor(200,204,230); d.line(M,y,XR,y); y+=18;
+    d.setFontSize(9); txt("HISAAB",M,y); txt("JAWAB",XJ,y,{align:"right"}); txt("TOTAL",XR,y,{align:"right"}); y+=10;
+    d.line(M,y,XR,y); y+=16;
+    var lines=inp.value.split("\n");
+    for(var i=0;i<lines.length;i++){
+      var raw=lines[i], rc=res.children[i], nc=run.children[i];
+      if(!raw.trim()){ y+=8; continue; }
+      var hm=raw.match(/^\s*#\s*(.+)$/);
+      ensure(24);
+      if(hm){ d.setFont("helvetica","bold"); d.setFontSize(11); d.setTextColor(30,35,84); txt(hm[1],M,y); y+=20; continue; }
+      var bb=rc&&rc.querySelector("b"), v=bb?bb.getAttribute("data-v"):"", rn=nc?nc.textContent.replace("= ",""):"";
+      d.setFont("helvetica","normal"); d.setFontSize(11); d.setTextColor(30,35,84);
+      txt(d.splitTextToSize(pdfClean(raw.replace(/\/\/.*$/,"")),330)[0]||"",M,y);
+      if(v){ d.setFont("helvetica","bold"); txt(v,XJ,y,{align:"right"}); }
+      if(rn){ d.setFont("helvetica","normal"); d.setTextColor(110,115,150); txt(rn,XR,y,{align:"right"}); }
+      y+=20;
+    }
+    ensure(50); d.line(M,y-8,XR,y-8); y+=10;
+    d.setFont("helvetica","bold"); d.setFontSize(13); d.setTextColor(30,35,84);
+    txt("Grand total",M,y); txt(tg.textContent,XR,y,{align:"right"}); y+=36;
+    function pbars(title,sub,rows){
+      ensure(60+rows.length*22);
+      d.setFont("helvetica","bold"); d.setFontSize(12); d.setTextColor(30,35,84); txt(title,M,y); y+=14;
+      d.setFont("helvetica","normal"); d.setFontSize(9); d.setTextColor(110,115,150); txt(sub,M,y); y+=16;
+      var mx=0, sa=0; rows.forEach(function(r){ mx=Math.max(mx,Math.abs(r.val)); sa+=Math.abs(r.val); });
+      rows.forEach(function(r){
+        ensure(22);
+        var w=mx?Math.max(2,Math.abs(r.val)/mx*200):0, pc=sa?Math.round(Math.abs(r.val)/sa*100):0;
+        d.setFont("helvetica","normal"); d.setFontSize(10); d.setTextColor(30,35,84);
+        txt(d.splitTextToSize(pdfClean(r.label),110)[0]||"",M,y+9);
+        if(r.val<0) d.setFillColor(230,100,100); else d.setFillColor(106,92,255);
+        d.roundedRect(M+120,y,w,12,3,3,"F");
+        txt(fmt(r.val)+"  ("+pc+"%)",XR,y+9,{align:"right"});
+        y+=22;
+      });
+      y+=12;
+    }
+    var g={}, order=[], sums=[], cards=[];
+    lastItems.forEach(function(it){ if(!g[it.b]){ g[it.b]=[]; order.push(it.b); } g[it.b].push(it); });
+    order.forEach(function(k,n){
+      var rows=g[k], t=0; rows.forEach(function(r){ t+=r.val; });
+      var title=lastTitles[k]||("Hissa "+(n+1)); sums.push({label:title,val:t});
+      if(rows.length>=2) cards.push([title,"Total: "+fmt(t),rows]);
+    });
+    if(order.length>1) cards.unshift(["Hisson ka muqabla","Har hisse ka total",sums]);
+    if(cards.length){
+      ensure(40); d.setFont("helvetica","bold"); d.setFontSize(16); d.setTextColor(30,35,84); txt("Summary graph",M,y); y+=24;
+      cards.forEach(function(c){ pbars(c[0],c[1],c[2]); });
+    }
+    return d.output("blob");
+  }
+  pdfBtn.addEventListener("click",function(){
+    if(!dlns) return;
+    var blob=null; try{ blob=buildPdf(); }catch(e){ blob=null; }
+    function flash(m){ pdfBtn.textContent=m; setTimeout(function(){ pdfBtn.textContent="PDF download"; },2200); }
+    if(!blob){ flash("PDF nahi ban saka"); return; }
+    dlns.save({filename:"hisaab-"+new Date().toISOString().slice(0,10)+".pdf",data:blob}).catch(function(err){
+      if(err&&err.code==="declined") return;
+      flash("Save nahi hua");
+    });
+  });
+  function stats(text){
+    var V={}, sum=0, grand=0, by={};
+    text.split('\n').forEach(function(l,i){
+      if(!l.trim()){ sum=0; V.total=0; return; }
+      V.total=sum;
+      var memo=/^\s*~/.test(l), r=evalLine(memo?l.replace(/^\s*~/,''):l,V);
+      if(!r||r.skip||r.err) return;
+      if(r.name) V[r.name]=r.val;
+      if(memo||r.name==='limit') return;
+      sum+=r.val; grand+=r.val;
+      var lb=labelOf(l,r.name,i); by[lb]=(by[lb]||0)+r.val;
+    });
+    return {grand:grand,by:by};
+  }
+  function pname(i){
+    var f=(pages[i].split('\n').filter(function(l){return l.trim();})[0]||'').replace(/^[#\/\s]+/,'').slice(0,20);
+    return (i+1)+'. '+(f||'Safha');
+  }
+  function cmp(){
+    if(pages.length<2) return '';
+    cA=Math.min(cA,pages.length-1); cB=Math.min(cB,pages.length-1);
+    var A=stats(pages[cA]), B=stats(pages[cB]), diff=B.grand-A.grand, pc=A.grand?Math.round(diff/Math.abs(A.grand)*100):0;
+    function opt(sel){ var o=''; for(var i=0;i<pages.length;i++) o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(pname(i))+'</option>'; return o; }
+    var keys=Object.keys(A.by); Object.keys(B.by).forEach(function(k){ if(keys.indexOf(k)<0) keys.push(k); });
+    var rows=keys.map(function(k){ var a=A.by[k]||0, b2=B.by[k]||0, d=b2-a; return '<tr><td>'+esc(k)+'</td><td>'+fmt(a)+'</td><td>'+fmt(b2)+'</td><td class="'+(d>0?'up':d<0?'dn':'')+'">'+(d>0?'+':'')+fmt(d)+'</td></tr>'; }).join('');
+    return '<div class="card glass"><h3>Safhon ka muqabla</h3><div class="cmpsel"><select id="cA" aria-label="Pehla safha">'+opt(cA)+'</select><span>vs</span><select id="cB" aria-label="Doosra safha">'+opt(cB)+'</select></div><div class="tot">Farq (B - A): '+(diff>0?'+':'')+fmt(diff)+' ('+(pc>0?'+':'')+pc+'%)</div><div class="tw"><table><tr><th></th><th>A</th><th>B</th><th>Farq</th></tr>'+rows+'</table></div></div>';
+  }
+  charts.addEventListener('click',function(e){
+    var bt=e.target.closest('[data-m]'); if(bt){ cm=bt.getAttribute('data-m'); render(); }
+  });
+  charts.addEventListener('change',function(e){
+    if(e.target.id==='cA'){ cA=+e.target.value; render(); }
+    if(e.target.id==='cB'){ cB=+e.target.value; render(); }
+  });
+  var TPL=[
+    ['Household budget','# Income\nsalary = 85k\n\n# Monthly expenses\nrent 22,000\nelectricity 8,400\ngroceries 15% of salary\nfuel 6,500\nschool fees 12k\nlimit = 70k\n~ bachat = salary - total'],
+    ['Shop daily sales','# Today sales\nrice 5 x 280\nsugar 3 x 170\ncooking oil 2 x 520\ntea 4 x 95\nflour 10 x 150'],
+    ['Trip / group expenses','# Trip costs\nhotel 24k\nfood 9,500\nfuel 6,000\ntransport 4,500\n~ per head total / 4'],
+    ['Property / installments','# Plan\nprice = 12 lakh\nadvance 20% of price\n~ remaining = price - advance\n~ months = 12\n~ per month remaining / months'],
+    ['Target vs achievement','# Weekly visits\nMonday 14\nTuesday 18\nWednesday 12\nThursday 16\n\n# Target\n~ target = 80\n~ done = 60\n~ achieved = done / target * 100'],
+    ['Gold / unit converter','# Conversions\n2 tola to gram\n5 seer to kg\n1 maund to kg']
+  ];
+  var SUBS=['Monthly home expenses','Quantity x rate for each item','Split the cost per head','Advance, remaining and monthly amount','Weekly field or sales tracking'];
+  var cats=document.getElementById('cats'), drawer=document.getElementById('drawer'), help=document.getElementById('help');
+  function findPage(i){
+    var h=TPL[i][1].split('\n')[0];
+    for(var p=0;p<pages.length;p++){ if(pages[p].split('\n')[0].trim()===h) return p; }
+    return -1;
+  }
+  function drawCats(){
+    var h='';
+    for(var i=0;i<5;i++){
+      h+='<button type="button" class="cat'+(findPage(i)===cur?' on':'')+'" data-i="'+i+'"><span class="n">'+(i+1)+'</span><span><b>'+TPL[i][0]+'</b><small>'+SUBS[i]+'</small></span></button>';
+    }
+    cats.innerHTML=h;
+  }
+  function menu(open){
+    document.body.classList.toggle('menu',open);
+    drawer.setAttribute('aria-hidden',open?'false':'true');
+    if(open) drawCats();
+  }
+  document.getElementById('tplb').addEventListener('click',function(){ menu(!document.body.classList.contains('menu')); });
+  document.getElementById('scrim').addEventListener('click',function(){ menu(false); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ menu(false); help.hidden=true; } });
+  cats.addEventListener('click',function(e){
+    var bt=e.target.closest('.cat'); if(!bt) return;
+    var i=+bt.getAttribute('data-i'), p=findPage(i);
+    if(p>=0){ cur=p; inp.value=pages[cur]; }
+    else if(inp.value.trim()===''){ inp.value=TPL[i][1]; }
+    else { pages.push(TPL[i][1]); cur=pages.length-1; inp.value=TPL[i][1]; }
+    menu(false); render(); window.scrollTo(0,0);
+  });
+  document.getElementById('howb').addEventListener('click',function(){ menu(false); help.hidden=false; });
+  document.getElementById('helpx').addEventListener('click',function(){ help.hidden=true; });
+  help.addEventListener('click',function(e){ if(e.target===help) help.hidden=true; });
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition, mic=document.getElementById('mic');
+  if(SR){
+    mic.hidden=false; var rec=null, live=false;
+    mic.addEventListener('click',function(){
+      if(live&&rec){ rec.stop(); return; }
+      try{
+        rec=new SR(); rec.lang='en-IN'; rec.interimResults=false;
+        rec.onresult=function(e){ var t=e.results[0][0].transcript, v=inp.value, sep=(v===''||/\n$/.test(v))?'':' '; inp.value=v+sep+t; render(); };
+        rec.onend=rec.onerror=function(){ live=false; mic.textContent='Mic'; };
+        rec.start(); live=true; mic.textContent='Sun raha hoon...';
+      }catch(err){ live=false; }
+    });
+  }
+  pdfBtn.addEventListener("click",function(){ menu(false); });
+  label(); render();
+})();
+</script>
+</body>
+</html>
